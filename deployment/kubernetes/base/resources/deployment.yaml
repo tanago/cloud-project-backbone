@@ -1,0 +1,62 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: cloud-project-service
+  labels:
+    name: cloud-project-service
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      name: cloud-project-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 25%
+      maxSurge: 25%
+  template:
+    metadata:
+      labels:
+        name: cloud-project-service
+    spec:
+      containers:
+        - name: cloud-project-service
+          image: cloud-project-service
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 90
+            periodSeconds: 15
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 90
+            periodSeconds: 15
+          env:
+             # db config
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: rds-secrets
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: rds-secrets
+                  key: password
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 200m
+              memory: 256Mi
+          imagePullPolicy: Always
+          terminationMessagePolicy: File
+      restartPolicy: OnFailure
+      terminationGracePeriodSeconds: 30

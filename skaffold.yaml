@@ -1,0 +1,30 @@
+apiVersion: skaffold/v2alpha2
+kind: Config
+metadata:
+  name: cloud-project-backbone
+build:
+  artifacts:
+  - image: example-service
+    context: .
+    docker:
+      dockerfile: Dockerfile
+profiles:
+  - name: local
+    build:
+      local:
+        push: false
+    portForward:
+      - resourceType: Service
+        resourceName: example-service
+        namespace: test
+        port: 80
+        localPort: 8888
+    deploy:
+      kustomize:
+        path: deployments/k8s/overlays/local
+  - name: eks
+    deploy:
+      kustomize:
+        path: deployments/k8s/overlays/eks
+    activation:
+      - kubeContext: xyz

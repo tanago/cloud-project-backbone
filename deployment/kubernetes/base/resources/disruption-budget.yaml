@@ -1,0 +1,9 @@
+apiVersion: policy/v1beta1
+kind: PodDisruptionBudget
+metadata:
+  name: service-disruption-budget
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      name: cloud-project-service
